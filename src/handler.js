@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 
 // Paths to data files
-const usersPath = path.resolve("src", "users.json");
-const articlesPath = path.resolve("src", "articles.json");
+const usersPath = path.resolve('src/data/users.json');
+const articlesPath = path.resolve('src/data/articles.json');
 
 // Helper functions to load and save data
 const loadUsers = () => {
@@ -136,13 +136,24 @@ export const deleteUserHandler = (request, h) => {
 // Article Handlers
 
 export const addArticleHandler = (request, h) => {
-  const { title, body, author } = request.payload;
+  const { author, title, description, url, urlToImage, publishedAt, content } = request.payload;
   const articles = loadArticles();
   const id = nanoid();
   const createdAt = new Date().toISOString();
   const updatedAt = createdAt;
 
-  const newArticle = { id, title, body, author, createdAt, updatedAt };
+  const newArticle = { 
+    id, 
+    author, 
+    title, 
+    description, 
+    url, 
+    urlToImage, 
+    publishedAt, 
+    content, 
+    createdAt, 
+    updatedAt 
+  };
 
   articles.push(newArticle);
   saveArticles(articles);
@@ -172,7 +183,7 @@ export const getArticleByIdHandler = (request, h) => {
 
 export const updateArticleHandler = (request, h) => {
   const { id } = request.params;
-  const { title, body, author } = request.payload;
+  const { author, title, description, url, urlToImage, publishedAt, content } = request.payload;
   const articles = loadArticles();
 
   const index = articles.findIndex((a) => a.id === id);
@@ -181,7 +192,18 @@ export const updateArticleHandler = (request, h) => {
   }
 
   const updatedAt = new Date().toISOString();
-  articles[index] = { ...articles[index], title, body, author, updatedAt };
+  articles[index] = { 
+    ...articles[index], 
+    author, 
+    title, 
+    description, 
+    url, 
+    urlToImage, 
+    publishedAt, 
+    content, 
+    updatedAt 
+  };
+
   saveArticles(articles);
 
   return h.response({

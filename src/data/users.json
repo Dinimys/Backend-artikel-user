@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "S-hOWRv5iWHifRkRa-nXg",
+    "name": "Dudu",
+    "age": 20,
+    "gender": "male",
+    "createdAt": "2024-12-09T15:43:08.018Z",
+    "updatedAt": "2024-12-09T15:43:08.018Z"
+  },
+  {
+    "id": "NqIkOU-5hJOmD4zEaiz7C",
+    "name": "Rose",
+    "age": 20,
+    "gender": "female",
+    "createdAt": "2024-12-09T15:54:22.108Z",
+    "updatedAt": "2024-12-10T04:17:12.592Z"
+  },
+  {
+    "id": "p-2U8chAR_J4QQkL6_1hZ",
+    "name": "Dini",
+    "age": 20,
+    "gender": "female",
+    "createdAt": "2024-12-10T03:51:50.916Z",
+    "updatedAt": "2024-12-10T03:51:50.916Z"
+  }
+]

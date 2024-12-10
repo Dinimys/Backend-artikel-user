@@ -1,63 +1,80 @@
+// src/users.js
 import fs from 'fs';
 import path from 'path';
-import { nanoid } from 'nanoid';  // Pastikan nanoid diimpor untuk membuat id unik
+import { nanoid } from 'nanoid';
 
-const usersPath = path.resolve('src', 'users.json');
+const usersPath = path.resolve('src/data/users.json');
 
-// Fungsi untuk memuat data pengguna dari file
 const loadUsers = () => {
-  const data = fs.readFileSync(usersPath, 'utf-8');
-  return JSON.parse(data);
+  if (!fs.existsSync(usersPath)) {
+    fs.writeFileSync(usersPath, JSON.stringify([]));
+  }
+  return JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
 };
 
-// Fungsi untuk menyimpan data pengguna ke file
 const saveUsers = (users) => {
   fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
 };
 
-// Menambahkan pengguna baru dengan age, gender, createdAt, updatedAt
 export const addUserHandler = (request, h) => {
   const { name, age, gender } = request.payload;
+
+  if (gender !== "male" && gender !== "female") {
+    return h.response({ status: 'fail', message: "Gender must be 'male' or 'female'." }).code(400);
+  }
+
   const users = loadUsers();
-  const id = nanoid();  // Membuat ID unik menggunakan nanoid
+  const id = nanoid();
   const createdAt = new Date().toISOString();
-  const updatedAt = createdAt;  // Same value initially
+  const updatedAt = createdAt;
 
-  // Menambahkan pengguna baru ke array users
   const newUser = { id, name, age, gender, createdAt, updatedAt };
-
   users.push(newUser);
-  saveUsers(users);  // Menyimpan data pengguna yang sudah diperbarui
+  saveUsers(users);
 
-  return h.response({
-    status: 'success',
-    data: { id },  // Mengembalikan ID pengguna yang baru ditambahkan
-  }).code(201);
+  return h.response({ status: 'success', data: { id } }).code(201);
 };
 
-// Memperbarui data pengguna berdasarkan ID
+export const getAllUsersHandler = (_, h) => {
+  const users = loadUsers();
+  return h.response({ status: 'success', data: { users } }).code(200);
+};
+
+export const getUserByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const users = loadUsers();
+  const user = users.find((u) => u.id === id);
+
+  if (!user) {
+    return h.response({ status: 'fail', message: 'User not found' }).code(404);
+  }
+
+  return h.response({ status: 'success', data: { user } }).code(200);
+};
+
 export const updateUserHandler = (request, h) => {
   const { id } = request.params;
   const { name, age, gender } = request.payload;
   const users = loadUsers();
 
-  // Mencari index pengguna berdasarkan ID
   const index = users.findIndex((u) => u.id === id);
   if (index === -1) {
-    return h.response({
-      status: 'fail',
-      message: 'User not found',  // Jika pengguna tidak ditemukan
-    }).code(404);
+    return h.response({ status: 'fail', message: 'User not found' }).code(404);
   }
 
-  // Memperbarui data pengguna dan menambahkan updatedAt
   const updatedAt = new Date().toISOString();
   users[index] = { ...users[index], name, age, gender, updatedAt };
+  saveUsers(users);
 
-  saveUsers(users);  // Menyimpan data pengguna yang sudah diperbarui
+  return h.response({ status: 'success', message: 'User updated successfully' }).code(200);
+};
 
-  return h.response({
-    status: 'success',
-    message: 'User updated successfully',
-  }).code(200);
+export const deleteUserHandler = (request, h) => {
+  const { id } = request.params;
+  const users = loadUsers();
+
+  const filteredUsers = users.filter((u) => u.id !== id);
+  saveUsers(filteredUsers);
+
+  return h.response({ status: 'success', message: 'User deleted successfully' }).code(200);
 };

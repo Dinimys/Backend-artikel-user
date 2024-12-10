@@ -1,63 +1,102 @@
+// src/articles.js
 import fs from 'fs';
 import path from 'path';
-import { nanoid } from 'nanoid';  // Pastikan nanoid diimpor untuk membuat id unik
+import { nanoid } from 'nanoid';
 
-const articlesPath = path.resolve('src', 'articles.json');
+const articlesPath = path.resolve('src/data/articles.json');
 
-// Fungsi untuk memuat data artikel dari file
+// Load Articles dari file JSON
 const loadArticles = () => {
-  const data = fs.readFileSync(articlesPath, 'utf-8');
-  return JSON.parse(data);
+  if (!fs.existsSync(articlesPath)) {
+    fs.writeFileSync(articlesPath, JSON.stringify([]));
+  }
+  return JSON.parse(fs.readFileSync(articlesPath, 'utf-8'));
 };
 
-// Fungsi untuk menyimpan data artikel ke file
+// Save Articles ke file JSON
 const saveArticles = (articles) => {
   fs.writeFileSync(articlesPath, JSON.stringify(articles, null, 2));
 };
 
-// Menambahkan artikel baru dengan title, body, author, createdAt, updatedAt
+// Menambahkan artikel baru
 export const addArticleHandler = (request, h) => {
-  const { title, body, author } = request.payload;
+  const { author, title, description, url, urlToImage, publishedAt, content } = request.payload;
   const articles = loadArticles();
-  const id = nanoid();  // Membuat ID unik menggunakan nanoid
+  const id = nanoid();
   const createdAt = new Date().toISOString();
-  const updatedAt = createdAt;  // Same value initially
+  const updatedAt = createdAt;
 
-  // Menambahkan artikel baru ke array articles
-  const newArticle = { id, title, body, author, createdAt, updatedAt };
+  const newArticle = { 
+    id, 
+    author, 
+    title, 
+    description, 
+    url, 
+    urlToImage, 
+    publishedAt, 
+    content, 
+    createdAt, 
+    updatedAt 
+  };
 
   articles.push(newArticle);
-  saveArticles(articles);  // Menyimpan data artikel yang sudah diperbarui
+  saveArticles(articles);
 
-  return h.response({
-    status: 'success',
-    data: { id },  // Mengembalikan ID artikel yang baru ditambahkan
-  }).code(201);
+  return h.response({ status: 'success', data: { id } }).code(201);
 };
 
-// Memperbarui data artikel berdasarkan ID
+/// Mengupdate artikel berdasarkan ID
 export const updateArticleHandler = (request, h) => {
   const { id } = request.params;
-  const { title, body, author } = request.payload;
+  const { author, title, description, url, urlToImage, publishedAt, content } = request.payload;
   const articles = loadArticles();
 
-  // Mencari index artikel berdasarkan ID
   const index = articles.findIndex((a) => a.id === id);
   if (index === -1) {
-    return h.response({
-      status: 'fail',
-      message: 'Article not found',  // Jika artikel tidak ditemukan
-    }).code(404);
+    return h.response({ status: 'fail', message: 'Article not found' }).code(404);
   }
 
-  // Memperbarui data artikel dan menambahkan updatedAt
   const updatedAt = new Date().toISOString();
-  articles[index] = { ...articles[index], title, body, author, updatedAt };
+  articles[index] = { 
+    ...articles[index], 
+    author, 
+    title, 
+    description, 
+    url, 
+    urlToImage, 
+    publishedAt, 
+    content, 
+    updatedAt 
+  };
 
-  saveArticles(articles);  // Menyimpan data artikel yang sudah diperbarui
+  saveArticles(articles);
 
-  return h.response({
-    status: 'success',
-    message: 'Article updated successfully',
-  }).code(200);
+  return h.response({ status: 'success', message: 'Article updated successfully' }).code(200);
+};
+
+export const deleteArticleByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const articles = loadArticles();
+
+  const filteredArticles = articles.filter((a) => a.id !== id);
+  saveArticles(filteredArticles);
+
+  return h.response({ status: 'success', message: 'Article deleted successfully' }).code(200);
+};
+
+export const getAllArticlesHandler = (_, h) => {
+  const articles = loadArticles();
+  return h.response({ status: 'success', data: { articles } }).code(200);
+};
+
+export const getArticleByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const articles = loadArticles();
+  const article = articles.find((a) => a.id === id);
+
+  if (!article) {
+    return h.response({ status: 'fail', message: 'Article not found' }).code(404);
+  }
+
+  return h.response({ status: 'success', data: { article } }).code(200);
 };
